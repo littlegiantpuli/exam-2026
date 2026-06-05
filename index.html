@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>2026 小巨人大會考成績查詢</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F0F4F8;--card:#fff;--border:#E2E8F0;
+  --text:#1E293B;--muted:#64748B;--light:#94A3B8;
+  --blue:#3B82F6;--blue-l:#EFF6FF;--blue-d:#1D4ED8;
+  --green:#10B981;--green-l:#ECFDF5;--green-d:#047857;
+  --gold:#F59E0B;--gold-l:#FFFBEB;--gold-d:#B45309;
+  --red:#EF4444;--radius:16px;--shadow:0 2px 12px rgba(0,0,0,.08);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Noto Sans TC,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+
+/* ─── Search view ─── */
+#search-view{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;gap:0}
+.logo-area{text-align:center;margin-bottom:32px}
+.logo-circle{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;box-shadow:0 4px 20px rgba(59,130,246,.3)}
+.logo-circle svg{width:36px;height:36px;fill:none;stroke:#fff;stroke-width:2}
+.logo-area h1{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.logo-area p{font-size:14px;color:var(--muted);margin-top:4px}
+
+.search-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 20px;width:100%;max-width:400px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.3px;text-transform:uppercase}
+select,input[type=text]{width:100%;height:52px;border:1.5px solid var(--border);border-radius:12px;padding:0 16px;font-size:16px;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:16px;padding-right:44px}
+select:focus,input[type=text]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:#fff}
+input[type=text]::placeholder{color:var(--light)}
+
+.btn-search{width:100%;height:52px;border-radius:12px;border:none;background:linear-gradient(135deg,#3B82F6,#6366F1);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:4px;letter-spacing:.2px}
+.btn-search:active{opacity:.85;transform:scale(.98)}
+.error-msg{color:var(--red);font-size:14px;text-align:center;margin-top:12px;min-height:20px;font-weight:500}
+
+/* ─── Result view ─── */
+#result-view{display:none;min-height:100vh;padding-bottom:32px}
+.result-header{background:var(--card);padding:16px 20px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 0 var(--border);position:sticky;top:0;z-index:10}
+.btn-back{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
+.btn-back:active{background:var(--border)}
+.btn-back svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2.5}
+.header-info h2{font-size:17px;font-weight:700;color:var(--text)}
+.header-info p{font-size:13px;color:var(--muted)}
+
+.result-body{padding:20px 16px;max-width:460px;margin:0 auto}
+
+/* ─── Score cards ─── */
+.scores-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.total-row{margin-bottom:20px}
+.score-card{border-radius:var(--radius);padding:20px 16px;position:relative;overflow:hidden}
+.score-card.blue{background:linear-gradient(135deg,#EFF6FF,#DBEAFE)}
+.score-card.green{background:linear-gradient(135deg,#ECFDF5,#D1FAE5)}
+.score-card.gold{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);display:flex;align-items:center;justify-content:space-between;padding:20px 24px}
+.card-label{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.blue .card-label{color:var(--blue-d)}
+.green .card-label{color:var(--green-d)}
+.gold .card-label{color:var(--gold-d)}
+.card-score{font-size:40px;font-weight:800;line-height:1;margin-bottom:6px;letter-spacing:-1px}
+.blue .card-score{color:var(--blue-d)}
+.green .card-score{color:var(--green-d)}
+.gold .card-score{color:var(--gold-d)}
+.card-rank{font-size:12px;font-weight:600;padding:3px 8px;border-radius:20px;display:inline-block}
+.blue .card-rank{background:rgba(59,130,246,.15);color:var(--blue-d)}
+.green .card-rank{background:rgba(16,185,129,.15);color:var(--green-d)}
+.gold .card-rank{background:rgba(245,158,11,.2);color:var(--gold-d)}
+.gold-left .card-score{font-size:48px}
+.gold-right{text-align:right}
+.gold-right .card-rank{font-size:13px;padding:4px 10px}
+.pct-text{font-size:12px;margin-top:4px;opacity:.75;font-weight:500}
+
+/* ─── Strip charts ─── */
+.section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:4px;height:16px;border-radius:2px;background:linear-gradient(135deg,#3B82F6,#8B5CF6)}
+.chart-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.chart-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.chart-name{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.3px}
+.chart-score-label{font-size:13px;font-weight:700}
+.chart-area{margin:8px 0 4px;position:relative}
+.chart-stats-row{display:flex;justify-content:space-between;font-size:11px;color:var(--light);margin-top:8px}
+.stat-item{text-align:center}
+.stat-item .sv{font-weight:700;color:var(--muted);font-size:12px}
+
+/* ─── Not found ─── */
+.not-found{text-align:center;padding:40px 20px}
+.not-found-icon{font-size:40px;margin-bottom:12px}
+.not-found h3{font-size:18px;font-weight:700;margin-bottom:6px}
+.not-found p{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- ══ Search View ══ -->
+<div id="search-view">
+  <div class="logo-area">
+    <div class="logo-circle">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <h1>小巨人大會考成績查詢</h1>
+    <p>2026 年度大會考</p>
+  </div>
+  <div class="search-card">
+    <div class="field">
+      <label>年級</label>
+      <select id="grade-sel">
+        <option value="">── 請選擇年級 ──</option>
+        <option value="3年級">三年級</option>
+        <option value="4年級">四年級</option>
+        <option value="5年級">五年級</option>
+        <option value="6年級">六年級</option>
+        <option value="7年級">七年級</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>姓名</label>
+      <input type="text" id="name-inp" placeholder="請輸入姓名" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <button class="btn-search" onclick="doSearch()">查詢成績</button>
+    <div class="error-msg" id="err-msg"></div>
+  </div>
+</div>
+
+<!-- ══ Result View ══ -->
+<div id="result-view">
+  <div class="result-header">
+    <button class="btn-back" onclick="goBack()">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="header-info">
+      <h2 id="r-name"></h2>
+      <p id="r-grade"></p>
+    </div>
+  </div>
+  <div class="result-body">
+    <!-- Score cards -->
+    <div class="scores-row">
+      <div class="score-card blue">
+        <div class="card-label">英文</div>
+        <div class="card-score" id="r-eng"></div>
+        <div class="card-rank" id="r-eng-rank"></div>
+        <div class="pct-text blue" id="r-eng-pct" style="color:var(--blue-d)"></div>
+      </div>
+      <div class="score-card green">
+        <div class="card-label">數學</div>
+        <div class="card-score" id="r-math"></div>
+        <div class="card-rank" id="r-math-rank"></div>
+        <div class="pct-text" id="r-math-pct" style="color:var(--green-d)"></div>
+      </div>
+    </div>
+    <div class="total-row">
+      <div class="score-card gold">
+        <div class="gold-left">
+          <div class="card-label">綜合總分</div>
+          <div class="card-score" id="r-total"></div>
+          <div class="card-rank" id="r-total-rank"></div>
+        </div>
+        <div class="gold-right">
+          <div class="pct-text" id="r-total-pct" style="color:var(--gold-d);font-size:14px;font-weight:700;margin-top:0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="section-title">年級成績分布</div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-name">ENGLISH 英文</span>
+        <span class="chart-score-label" id="cl-eng" style="color:var(--blue-d)"></span>
+      </div>
+      <div class="chart-area"><div id="strip-eng"></div></div>
+      <div class="chart-stats-row" id="cs-eng"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-name">MATH 數學</span>
+        <span class="chart-score-label" id="cl-math" style="color:var(--green-d)"></span>
+      </div>
+      <div class="chart-area"><div id="strip-math"></div></div>
+      <div class="chart-stats-row" id="cs-math"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-name">TOTAL 綜合總分</span>
+        <span class="chart-score-label" id="cl-total" style="color:var(--gold-d)"></span>
+      </div>
+      <div class="chart-area"><div id="strip-total"></div></div>
+      <div class="chart-stats-row" id="cs-total"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbzstEHCxqDRTvliRqZtu2UTcFpMxLGe_LhEngAPinV2pn3ovmf1iHfISyxnPwO_aZsi/exec';
+
+async function doSearch(){
+  const grade = document.getElementById('grade-sel').value;
+  const name  = document.getElementById('name-inp').value.trim();
+  const err   = document.getElementById('err-msg');
+  const btn   = document.querySelector('.btn-search');
+  err.textContent = '';
+  if(!grade){ err.textContent='請先選擇年級'; return; }
+  if(!name) { err.textContent='請輸入姓名';  return; }
+
+  btn.textContent = '查詢中…';
+  btn.disabled = true;
+  err.textContent = '';
+
+  const cbName = 'cb_' + Date.now();
+  const url = `${API_URL}?grade=${encodeURIComponent(grade)}&name=${encodeURIComponent(name)}&callback=${cbName}`;
+  const script = document.createElement('script');
+
+  const timer = setTimeout(()=>{
+    cleanup();
+    err.textContent = '查詢逾時，請確認網路後再試';
+    btn.textContent = '查詢成績';
+    btn.disabled = false;
+  }, 15000);
+
+  function cleanup(){
+    clearTimeout(timer);
+    delete window[cbName];
+    if(script.parentNode) script.parentNode.removeChild(script);
+  }
+
+  window[cbName] = function(data){
+    cleanup();
+    btn.textContent = '查詢成績';
+    btn.disabled = false;
+    if(data.error){ err.textContent = data.error; return; }
+    showResult(data.grade, { n: data.n, stats: data.stats, all_eng: data.all_eng, all_math: data.all_math, all_total: data.all_total }, data.student);
+  };
+
+  script.onerror = function(){
+    cleanup();
+    err.textContent = '連線失敗，請稍後再試';
+    btn.textContent = '查詢成績';
+    btn.disabled = false;
+  };
+
+  document.head.appendChild(script);
+  script.src = url;
+}
+
+function pct(rank, n){ return Math.round((n - rank) / n * 100); }
+
+function showResult(grade, gd, student){
+  const n = gd.n;
+  document.getElementById('search-view').style.display = 'none';
+  document.getElementById('r-name').textContent = student.name;
+  document.getElementById('r-grade').textContent = grade + '　共 '+n+' 人計入排名';
+
+  const ep = pct(student.rank_eng, n);
+  const mp = pct(student.rank_math, n);
+  const tp = pct(student.rank_total, n);
+
+  document.getElementById('r-eng').textContent   = student.eng;
+  document.getElementById('r-eng-rank').textContent = '第 '+student.rank_eng+' 名 / '+n+' 人';
+  document.getElementById('r-eng-pct').textContent  = '超越 '+ep+'% 同學';
+
+  document.getElementById('r-math').textContent  = student.math;
+  document.getElementById('r-math-rank').textContent= '第 '+student.rank_math+' 名 / '+n+' 人';
+  document.getElementById('r-math-pct').textContent = '超越 '+mp+'% 同學';
+
+  document.getElementById('r-total').textContent = student.total;
+  document.getElementById('r-total-rank').textContent='第 '+student.rank_total+' 名 / '+n+' 人';
+  document.getElementById('r-total-pct').textContent ='超越 '+tp+'% 同學';
+
+  
+  const rv = document.getElementById('result-view');
+  rv.style.display='block';
+  rv.scrollTop = 0;
+  window.scrollTo(0,0);
+
+  setTimeout(()=>{
+    drawStrip('strip-eng',  gd.all_eng,   student.eng,   gd.stats.eng,  '#3B82F6','#cl-eng','cs-eng');
+    drawStrip('strip-math', gd.all_math,  student.math,  gd.stats.math, '#10B981','#cl-math','cs-math');
+    drawStrip('strip-total',gd.all_total, student.total, gd.stats.total,'#F59E0B','#cl-total','cs-total');
+  },60);
+}
+
+function drawStrip(containerId, allScores, studentScore, stats, color, labelId, statsId){
+  const el = document.getElementById(containerId);
+  const W  = el.parentElement.offsetWidth || 320;
+  const H  = 72;
+  const pL = 16, pR = 16;
+  const pw = W - pL - pR;
+  const midY = 34;
+
+  // label
+  const lbl = labelId.replace('#','');
+  const st = statsId;
+  document.getElementById(lbl).textContent = studentScore + ' 分';
+
+  const lo = stats.min, hi = stats.max;
+  function tx(s){ return pL + (s-lo)/(hi-lo)*pw; }
+
+  let svg = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" overflow="visible">`;
+
+  // Track
+  svg += `<rect x="${pL}" y="${midY-2}" width="${pw}" height="4" fill="#E2E8F0" rx="2"/>`;
+
+  // IQR zone
+  const q1x = tx(stats.q1), q3x = tx(stats.q3);
+  svg += `<rect x="${q1x}" y="${midY-10}" width="${q3x-q1x}" height="20" fill="${color}" opacity=".12" rx="4"/>`;
+
+  // Median tick
+  const medX = tx(stats.median);
+  svg += `<line x1="${medX}" y1="${midY-12}" x2="${medX}" y2="${midY+12}" stroke="${color}" stroke-width="1.5" opacity=".5" stroke-dasharray="3,2"/>`;
+
+  // Other students (jittered)
+  allScores.forEach((s,i)=>{
+    if(s===studentScore) return;
+    const x = tx(s);
+    const jy = (Math.sin(i*5.83+1.1)*0.5)*13;
+    svg += `<circle cx="${x}" cy="${midY+jy}" r="3.5" fill="#CBD5E1"/>`;
+  });
+
+  // Student dot
+  const sx = tx(studentScore);
+  svg += `<circle cx="${sx}" cy="${midY}" r="8" fill="${color}" stroke="white" stroke-width="2.5"/>`;
+
+  // Min / Max labels
+  svg += `<text x="${pL}" y="${H-4}" fill="#94A3B8" font-size="10" font-family="system-ui" text-anchor="start">${lo}</text>`;
+  svg += `<text x="${W-pR}" y="${H-4}" fill="#94A3B8" font-size="10" font-family="system-ui" text-anchor="end">${hi}</text>`;
+
+  // Median label
+  const mleft = medX < 40 ? 'start' : medX > W-40 ? 'end' : 'middle';
+  svg += `<text x="${medX}" y="${H-4}" fill="${color}" font-size="10" font-family="system-ui" opacity=".8" text-anchor="${mleft}">中位 ${stats.median}</text>`;
+
+  svg += '</svg>';
+  el.innerHTML = svg;
+
+  // Stats row
+  document.getElementById(st).innerHTML = [
+    ['平均',stats.mean],['Q1',stats.q1],['中位',stats.median],['Q3',stats.q3]
+  ].map(([k,v])=>`<div class="stat-item"><div class="sv">${v}</div><div>${k}</div></div>`).join('');
+}
+
+function goBack(){
+  document.getElementById('result-view').style.display='none';
+  document.getElementById('search-view').style.display='flex';
+  document.getElementById('err-msg').textContent='';
+}
+
+document.getElementById('name-inp').addEventListener('keydown',e=>{
+  if(e.key==='Enter') doSearch();
+});
+</script>
+</body>
+</html>
