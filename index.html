@@ -318,21 +318,23 @@ function showResult(grade, gd, student){
   document.getElementById('r-name').textContent = student.name;
   document.getElementById('r-grade').textContent = grade + '　共 '+n+' 人計入排名';
 
-  const ep = pct(student.rank_eng, n);
-  const mp = pct(student.rank_math, n);
-  const tp = pct(student.rank_total, n);
+  function fillScore(scoreId, rankId, pctId, score, rank, nSubj){
+    if(score === null || score === undefined){
+      document.getElementById(scoreId).textContent = '缺考';
+      document.getElementById(scoreId).style.fontSize = '22px';
+      document.getElementById(rankId).textContent = '未列入排名';
+      document.getElementById(pctId).textContent  = '';
+    } else {
+      document.getElementById(scoreId).textContent  = score;
+      document.getElementById(scoreId).style.fontSize = '';
+      document.getElementById(rankId).textContent  = '第 '+rank+' 名 / '+nSubj+' 人';
+      document.getElementById(pctId).textContent   = '超越 '+pct(rank, nSubj)+'% 同學';
+    }
+  }
 
-  document.getElementById('r-eng').textContent   = student.eng;
-  document.getElementById('r-eng-rank').textContent = '第 '+student.rank_eng+' 名 / '+n+' 人';
-  document.getElementById('r-eng-pct').textContent  = '超越 '+ep+'% 同學';
-
-  document.getElementById('r-math').textContent  = student.math;
-  document.getElementById('r-math-rank').textContent= '第 '+student.rank_math+' 名 / '+n+' 人';
-  document.getElementById('r-math-pct').textContent = '超越 '+mp+'% 同學';
-
-  document.getElementById('r-total').textContent = student.total;
-  document.getElementById('r-total-rank').textContent='第 '+student.rank_total+' 名 / '+n+' 人';
-  document.getElementById('r-total-pct').textContent ='超越 '+tp+'% 同學';
+  fillScore('r-eng',   'r-eng-rank',   'r-eng-pct',   student.eng,   student.rank_eng,   student.n_eng   || n);
+  fillScore('r-math',  'r-math-rank',  'r-math-pct',  student.math,  student.rank_math,  student.n_math  || n);
+  fillScore('r-total', 'r-total-rank', 'r-total-pct', student.total, student.rank_total, student.n_total || n);
 
   
   const rv = document.getElementById('result-view');
@@ -341,9 +343,17 @@ function showResult(grade, gd, student){
   window.scrollTo(0,0);
 
   setTimeout(()=>{
-    drawStrip('strip-eng',  gd.all_eng,   student.eng,   gd.stats.eng,  '#3B82F6','#cl-eng','cs-eng');
-    drawStrip('strip-math', gd.all_math,  student.math,  gd.stats.math, '#10B981','#cl-math','cs-math');
-    drawStrip('strip-total',gd.all_total, student.total, gd.stats.total,'#F59E0B','#cl-total','cs-total');
+    if(student.eng   !== null && gd.stats && gd.stats.eng)
+      drawStrip('strip-eng',  gd.all_eng,   student.eng,   gd.stats.eng,  '#3B82F6','cl-eng','cs-eng');
+    else document.getElementById('strip-eng').innerHTML='<p style="color:var(--light);font-size:13px;text-align:center;padding:16px 0">缺考，不列入分布統計</p>';
+
+    if(student.math  !== null && gd.stats && gd.stats.math)
+      drawStrip('strip-math', gd.all_math,  student.math,  gd.stats.math, '#10B981','cl-math','cs-math');
+    else document.getElementById('strip-math').innerHTML='<p style="color:var(--light);font-size:13px;text-align:center;padding:16px 0">缺考，不列入分布統計</p>';
+
+    if(student.total !== null && gd.stats && gd.stats.total)
+      drawStrip('strip-total',gd.all_total, student.total, gd.stats.total,'#F59E0B','cl-total','cs-total');
+    else document.getElementById('strip-total').innerHTML='<p style="color:var(--light);font-size:13px;text-align:center;padding:16px 0">缺考，不列入分布統計</p>';
   },60);
 }
 
